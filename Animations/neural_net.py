@@ -2,6 +2,8 @@ import sys
 import os.path
 import cv2
 
+import numpy as np
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from manimlib.imports import *
@@ -336,18 +338,20 @@ class EmbeddingProblem(Scene):
 
         # display words and their one-hot encodings
         words  = TextMobject("amazing", "waterfall", "terrible", "flower", "tower",
-                             "house", "tree", "joyful", "blue", "book", "happy").scale(0.5)
+                             "house", "tree", "joyful", "blue", "book", "happy", ).scale(0.55)
 
-        encodings = [[] for i in range(len(words))]
+        word_num = len(words)
 
-        vectors = [Matrix([0]) for i in range(len(encodings))]
+        encodings = [[] for i in range(word_num)]
+
+        vectors = [Matrix([0]) for i in range(word_num)]
               
 
-        for i in range(len(words)):
+        for i in range(word_num):
             if i == 0:
                 words[i].move_to([-5.6, 3, 0])
             else:
-                words[i].next_to(words[i-1], RIGHT, buff = 0.5).align_to(words[i-1], UP)
+                words[i].next_to(words[i-1], RIGHT, buff = 0.45).align_to(words[i-1], UP)
             
             # write word
             self.play(Write(words[i]))
@@ -366,6 +370,106 @@ class EmbeddingProblem(Scene):
             self.play(AnimationGroup(*trans_anims), lag_ratio = 0.05)
 
         self.wait(2)
+
+
+        # better encodings - embeddings
+        embeddings = [np.random.randint(low = 0, high=10, size=4) for i in range(word_num)]
+
+        dense_anims = []
+        for idx, emd in enumerate(embeddings):
+            dense_anims.append(Transform(vectors[idx], Matrix(emd).scale(0.5).next_to(words[idx], DOWN)))
+        self.play(AnimationGroup(*dense_anims), lag_ratio = 0.05)
+
+        self.wait(2)
+
+
+        # display embedding space
+        plane_kwargs = {
+        "axis_config": {
+            "stroke_color": WHITE,
+            "stroke_width": 2,
+            "include_ticks": False,
+            "include_tip": False,
+            "line_to_number_buff": SMALL_BUFF,
+            "label_direction": DR,
+            "number_scale_val": 0.5,
+        },
+        "y_axis_config": {
+            "label_direction": DR,
+        },
+        "background_line_style": {
+            "stroke_color": BLUE_D,
+            "stroke_width": 2,
+            "stroke_opacity": 1,
+        },
+        # Defaults to a faded version of line_config
+        "faded_line_style": None,
+        "x_line_frequency": 1,
+        "y_line_frequency": 1,
+        "faded_line_ratio": 1,
+        "make_smooth_after_applying_functions": True,
+        }
+
+        latent_space = NumberPlane(**plane_kwargs)
+
+        self.bring_to_back(latent_space)
+
+        self.play(GrowFromCenter(latent_space))
+
+        self.wait(2)
+
+
+        # embed tree and flower
+        fat_flower = TextMobject("\\textbf{flower}").move_to(words[3].get_center()).set_color(GREEN).scale(0.8)
+        fat_tree = TextMobject("\\textbf{tree}").move_to(words[6].get_center()).set_color(GREEN).scale(0.8).align_to(fat_flower, UP)
+       
+        highlight_anims = [Transform(words[3], fat_flower), Transform(words[6], fat_tree)]
+        self.play(AnimationGroup(*highlight_anims))
+        self.wait(2)
+
+
+        flower_embed = Dot([-4, -2, 0]).set_color(GREEN)
+        tree_embed = Dot([-3, -3, 0]).set_color(GREEN)
+
+        def list_sum(a_list, b_list):
+            return [a + b for a, b in zip(a_list, b_list)]
+
+        embed_anim = [Transform(vectors[3], flower_embed),
+                      Transform(vectors[6], tree_embed),
+                      ApplyMethod(words[3].move_to, list_sum(flower_embed.get_center(), [0.5, 0.5, 0])),
+                      ApplyMethod(words[6].move_to, list_sum(tree_embed.get_center(), [0.5, 0.5, 0]))]
+
+        self.play(AnimationGroup(*embed_anim))
+
+        self.wait(2)
+
+
+        # embed joyful and happy
+        fat_joyful = TextMobject("\\textbf{joyful}").move_to(words[7].get_center()).set_color(YELLOW).scale(0.8)
+        fat_happy = TextMobject("\\textbf{happy}").move_to(words[10].get_center()).set_color(YELLOW).scale(0.8).align_to(fat_flower, UP)
+       
+        highlight_anims = [Transform(words[7], fat_joyful), Transform(words[10], fat_happy)]
+        self.play(AnimationGroup(*highlight_anims))
+        self.wait(2)
+
+
+        joyful_embed = Dot([4, -1, 0]).set_color(YELLOW)
+        happy_embed = Dot([5, -2, 0]).set_color(YELLOW)
+
+        embed_anim = [Transform(vectors[7], joyful_embed),
+                      Transform(vectors[10], happy_embed),
+                      ApplyMethod(words[7].move_to, list_sum(joyful_embed.get_center(), [0.5, 0.5, 0])),
+                      ApplyMethod(words[10].move_to, list_sum(happy_embed.get_center(), [0.5, 0.5, 0]))]
+
+        self.play(AnimationGroup(*embed_anim))
+
+        self.wait(2)
+
+
+
+
+
+
 
 
 
