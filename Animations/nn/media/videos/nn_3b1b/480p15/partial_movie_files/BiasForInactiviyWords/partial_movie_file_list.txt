@@ -1,0 +1,2 @@
+file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/nn/media/videos/nn_3b1b/480p15/partial_movie_files/BiasForInactiviyWords/00000.mp4'
+file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/nn/media/videos/nn_3b1b/480p15/partial_movie_files/BiasForInactiviyWords/00001.mp4'
