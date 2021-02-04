@@ -42,3 +42,8 @@ file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/media/videos/neural_
 file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/media/videos/neural_net/480p15/partial_movie_files/IntroduceNetwork/00041.mp4'
 file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/media/videos/neural_net/480p15/partial_movie_files/IntroduceNetwork/00042.mp4'
 file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/media/videos/neural_net/480p15/partial_movie_files/IntroduceNetwork/00043.mp4'
+file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/media/videos/neural_net/480p15/partial_movie_files/IntroduceNetwork/00044.mp4'
+file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/media/videos/neural_net/480p15/partial_movie_files/IntroduceNetwork/00045.mp4'
+file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/media/videos/neural_net/480p15/partial_movie_files/IntroduceNetwork/00046.mp4'
+file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/media/videos/neural_net/480p15/partial_movie_files/IntroduceNetwork/00047.mp4'
+file 'file:/Users/RobinHorn/Documents/UNI/S5/NLP/Animations/media/videos/neural_net/480p15/partial_movie_files/IntroduceNetwork/00048.mp4'

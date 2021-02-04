@@ -189,8 +189,11 @@ class NetworkScene(Scene):
         "layer_sizes" : [3, 6, 6, 2],
         "network_mob_config" : {},
     }
-    def setup(self):
+
+    # set to manual //setup(self)
+    def setup_manual(self):
         self.add_network()
+
 
     def add_network(self):
         self.network = Network(sizes = self.layer_sizes)
@@ -242,12 +245,10 @@ class NetworkScene(Scene):
 
 class IntroduceNetwork(NetworkScene):
 
-    def boing_shift(self, mob, direction = -1):
-        pos = mob.get_center()
-
-
-
     def construct(self):
+
+        # manual setup of nn
+        self.setup_manual()
 
         # display NeuralNet
         network_mob = self.network_mob.move_to([1.5,0,0]).scale(1.1)
@@ -255,6 +256,7 @@ class IntroduceNetwork(NetworkScene):
         self.play(
            ShowCreation(network_mob)
         )
+        self.wait(6)
 
         # display words
         positive_word = TextMobject("\\textbf{amazing}").move_to([-4.5,2,0]).set_color(GREEN)
@@ -270,11 +272,11 @@ class IntroduceNetwork(NetworkScene):
                                    Write(neutral_word),
                                    Write(negative_word)],
                   lag_ratio = 1))
-        self.wait(2)
+        self.wait(4)
 
 
         # words as in strings are not suited as input for neural networks
-        boing_pos = [-1, 1, -0.5, 0.5]
+        boing_pos = [-1, 1, -0.5, 0.5, -2.25]
         initial_shift = [ApplyMethod(neutral_word.shift, [2.25,0,0])]
         boing_shift = [ApplyMethod(neutral_word.shift, [pos,0,0]) for pos in boing_pos]
 
@@ -285,10 +287,10 @@ class IntroduceNetwork(NetworkScene):
             self.play(anim)
 
 
-        # shift word back and remove red activation
-        self.play(ApplyMethod(neutral_word.shift, [-2.25,0,0]))
+        # remove red activation
+        # self.play(ApplyMethod(neutral_word.shift, [-2.25,0,0]))
         network_mob.deactivate_layers()
-        self.wait(1)
+        self.wait(2)
 
 
         # display one-hot vectors of words
@@ -325,9 +327,39 @@ class IntroduceNetwork(NetworkScene):
             self.play(FadeOut(smiley))
 
         
+        # display one-hot vectors one more time
+        positive_hot_list = TextMobject("[1, 0, 0]").next_to(positive_word, DOWN)
+        neutral_hot_list = TextMobject("[0, 1, 0]").next_to(neutral_word, DOWN).align_to(positive_hot_list, LEFT)
+        negative_hot_list = TextMobject("[0, 0, 1]").next_to(negative_word, DOWN).align_to(positive_hot_list, LEFT)
+
+        self.play(AnimationGroup(*[Write(positive_hot_list),
+                                   Write(neutral_hot_list),
+                                   Write(negative_hot_list)],
+                  lag_ratio = 0.2))
+
+        self.wait(8)
+
+        # and add flames
+        pos = [p + [0,0.15,0] for p in [positive_hot_list.get_center(), neutral_hot_list.get_center(), negative_hot_list.get_center()]]
+        flame_1 = ImageMobject("images/flame.png").scale(0.4).move_to(pos[0])
+        flame_2 = flame_1.copy().move_to(pos[1])
+        flame_3 = flame_1.copy().move_to(pos[2])
+
+        flame_intro = [GrowFromCenter(flame) for flame in [flame_1, flame_2, flame_3]]
+        self.play(AnimationGroup(*flame_intro))
+        self.wait(1)
+
+        flame_fadeout = [FadeOut(flame) for flame in [flame_1, flame_2, flame_3]]
+        self.play(AnimationGroup(*flame_fadeout))
+        #self.wait(0.5)
+
 
         # Clean up screen
-        self.play(FadeOut(network_mob), FadeOut(positive_word), FadeOut(neutral_word), FadeOut(negative_word))
+        self.play(FadeOut(network_mob), FadeOut(positive_word), FadeOut(neutral_word), FadeOut(negative_word),
+                  FadeOut(positive_hot_list), FadeOut(neutral_hot_list), FadeOut(negative_hot_list))
+
+        
+
 
 
 
@@ -337,8 +369,8 @@ class EmbeddingProblem(Scene):
     def construct(self):
 
         # display words and their one-hot encodings
-        words  = TextMobject("amazing", "waterfall", "terrible", "flower", "tower",
-                             "house", "tree", "joyful", "blue", "book", "happy", ).scale(0.55)
+        words  = TextMobject("kept", "attention", "from", "start", "finish",
+                             "great", "performances", "added", "to", "tremendous", "film").scale(0.55)
 
         word_num = len(words)
 
@@ -349,7 +381,7 @@ class EmbeddingProblem(Scene):
 
         for i in range(word_num):
             if i == 0:
-                words[i].move_to([-5.6, 3, 0])
+                words[i].move_to([-6.1, 3.2, 0])
             else:
                 words[i].next_to(words[i-1], RIGHT, buff = 0.45).align_to(words[i-1], UP)
             
@@ -420,24 +452,24 @@ class EmbeddingProblem(Scene):
 
 
         # embed tree and flower
-        fat_flower = TextMobject("\\textbf{flower}").move_to(words[3].get_center()).set_color(GREEN).scale(0.8)
-        fat_tree = TextMobject("\\textbf{tree}").move_to(words[6].get_center()).set_color(GREEN).scale(0.8).align_to(fat_flower, UP)
+        fat_start = TextMobject("\\textbf{start}").move_to(words[3].get_center()).set_color(GREEN).scale(0.8)
+        fat_finish = TextMobject("\\textbf{finish}").move_to(words[4].get_center()).set_color(GREEN).scale(0.8).align_to(fat_start, DOWN)
        
-        highlight_anims = [Transform(words[3], fat_flower), Transform(words[6], fat_tree)]
+        highlight_anims = [Transform(words[3], fat_start), Transform(words[4], fat_finish)]
         self.play(AnimationGroup(*highlight_anims))
         self.wait(2)
 
 
-        flower_embed = Dot([-4, -2, 0]).set_color(GREEN)
-        tree_embed = Dot([-3, -3, 0]).set_color(GREEN)
+        start_embed = Dot([-4, -2, 0]).set_color(GREEN)
+        finish_embed = Dot([-3, -3, 0]).set_color(GREEN)
 
         def list_sum(a_list, b_list):
             return [a + b for a, b in zip(a_list, b_list)]
 
-        embed_anim = [Transform(vectors[3], flower_embed),
-                      Transform(vectors[6], tree_embed),
-                      ApplyMethod(words[3].move_to, list_sum(flower_embed.get_center(), [0.5, 0.5, 0])),
-                      ApplyMethod(words[6].move_to, list_sum(tree_embed.get_center(), [0.5, 0.5, 0]))]
+        embed_anim = [Transform(vectors[3], start_embed),
+                      Transform(vectors[4], finish_embed),
+                      ApplyMethod(words[3].move_to, list_sum(start_embed.get_center(), [0.5, 0.5, 0])),
+                      ApplyMethod(words[4].move_to, list_sum(finish_embed.get_center(), [0.5, 0.5, 0]))]
 
         self.play(AnimationGroup(*embed_anim))
 
@@ -445,35 +477,285 @@ class EmbeddingProblem(Scene):
 
 
         # embed joyful and happy
-        fat_joyful = TextMobject("\\textbf{joyful}").move_to(words[7].get_center()).set_color(YELLOW).scale(0.8)
-        fat_happy = TextMobject("\\textbf{happy}").move_to(words[10].get_center()).set_color(YELLOW).scale(0.8).align_to(fat_flower, UP)
+        fat_word_3 = TextMobject("\\textbf{great}").move_to(words[5].get_center()).set_color(YELLOW).scale(0.8)
+        fat_word_4 = TextMobject("\\textbf{tremendous}").move_to(words[9].get_center()).set_color(YELLOW).scale(0.8).align_to(fat_word_3, UP)
        
-        highlight_anims = [Transform(words[7], fat_joyful), Transform(words[10], fat_happy)]
+        highlight_anims = [Transform(words[5], fat_word_3), Transform(words[9], fat_word_4)]
         self.play(AnimationGroup(*highlight_anims))
         self.wait(2)
 
 
-        joyful_embed = Dot([4, -1, 0]).set_color(YELLOW)
-        happy_embed = Dot([5, -2, 0]).set_color(YELLOW)
+        embed_3 = Dot([4, -1, 0]).set_color(YELLOW)
+        embed_4 = Dot([5, -2, 0]).set_color(YELLOW)
 
-        embed_anim = [Transform(vectors[7], joyful_embed),
-                      Transform(vectors[10], happy_embed),
-                      ApplyMethod(words[7].move_to, list_sum(joyful_embed.get_center(), [0.5, 0.5, 0])),
-                      ApplyMethod(words[10].move_to, list_sum(happy_embed.get_center(), [0.5, 0.5, 0]))]
+        embed_anim = [Transform(vectors[5], embed_3),
+                      Transform(vectors[9], embed_4),
+                      ApplyMethod(words[5].move_to, list_sum(embed_3.get_center(), [0.5, 0.5, 0])),
+                      ApplyMethod(words[9].move_to, list_sum(embed_4.get_center(), [0.5, 0.5, 0]))]
 
         self.play(AnimationGroup(*embed_anim))
 
+        self.wait(15)
+
+
+
+
+
+class CBOW(NetworkScene):
+
+    def construct(self):
+
+        CBOW = TextMobject("\\textbf{CBOW}").move_to([0,2.5,0]).scale(2)
+        cbow_long = TextMobject("continuous ", "bag of words").move_to([0,2.5,0]).scale(2)
+
+        self.play(Write(CBOW))
+        self.wait(1)
+
+        self.play(Transform(CBOW, cbow_long))
+        self.wait(1)
+
+
+        ### explain meaning of "continuous" and "bag of words"
+
+        ## continuous
+
+        # add space
+        latent_space = NumberPlane()
+    
+        self.play(ApplyMethod(CBOW[0].set_color, BLUE))
+
+        self.bring_to_back(latent_space)
+        self.play(GrowFromCenter(latent_space))
+        self.wait(1)
+
+
+        # add embeddings
+        r = lambda: np.random.randint(0,255)
+
+        dot_num = 200
+        coords_and_colors = [(np.random.uniform(-6,6),             # x
+                              np.random.uniform(-4,4),             # y
+                              ('#%02X%02X%02X' % (r(),r(),r()))    # hex color
+                             ) for i in range(dot_num)]
+
+        dots = [Dot([x, y, 0]).set_color(color).scale(0.7) for x, y, color in coords_and_colors]
+
+        embed_grow = [GrowFromCenter(dot) for dot in dots]
+        embed_fadeout = [FadeOut(dot) for dot in dots]
+
+        self.play(AnimationGroup(*embed_grow, lag_ratio=0.01))
+        #self.wait(2)
+
+        self.play(FadeOut(latent_space), AnimationGroup(*embed_fadeout),
+                  ApplyMethod(CBOW[0].set_color, WHITE))
+        #self.wait(1)
+
+
+        ## bag of words
+        self.play(ApplyMethod(CBOW[1].set_color, ORANGE))
+
+        sentence = [word+" " for word in "I have never seen a movie with such great performances".split(" ")]
+
+        bow  = TextMobject(*sentence).move_to([0,0,0]).scale(0.8)
+        #bow.arrange(RIGHT, aligned_edge=DOWN, center = False, buff=0.4)
+        #bow.arrange(RIGHT, center = True, buff=0.4)
+
+        self.play(Write(bow))
+        self.wait(2)
+
+        target = 5
+        a = 0
+        
+        for i in range(len(bow)):
+            if i == 0:
+                bow[i].generate_target()
+                bow[i].target.move_to([-6, 1.8, 0])
+
+            elif i == target:
+                bow[i].generate_target()
+                bow[i].target.move_to([5, 0, 0])
+                bow[i].target.set_color(YELLOW)
+                a = 1
+            
+            else:
+                bow[i].generate_target()
+                bow[i].target.next_to(bow[i-1].target, DOWN).align_to(bow[i-1-a].target, LEFT)
+                a = 0
+
+        sentence_side_anim = [MoveToTarget(word) for word in bow]
+
+        # highlight target word
+        self.play(ApplyMethod(bow[target].set_color, YELLOW))
+        self.wait(1)
+
+        # split target and context
+        self.play(AnimationGroup(*sentence_side_anim, lag_ratio = 0.05))
+        self.wait(4)
+
+        context = VGroup(*bow[:target], *bow[target+1:])
+        context_summary = context.copy().scale(0.7)
+
+        # highlight context words
+        self.play(ApplyMethod(context.set_color, BLUE))
+        self.wait(2)
+
+
+        # build cbow model
+        embedding_matrix = Matrix(["Emebedding"]).move_to([-2.3,0,0]).scale(0.7)
+
+        output_matrix = Matrix(["Output"]).move_to([-1.5,0,0]).scale(1)
+
+        self.play(GrowFromCenter(embedding_matrix))
+        self.wait(2)
+
+        embeddings = TextMobject(*["E"+str(i) for i in range(1,10)]).move_to([1.5,1.8,0]).scale(0.6)
+        embeddings.arrange(DOWN, aligned_edge=LEFT, center = False, buff=0.30)
+
+        # transform all at once
+        # self.play(Transform(context.copy(), embeddings))
+
+        # individual transform through matrix
+        anims = []
+
+        for word, embed in zip(context, embeddings):
+            matrix_pos_diff = embedding_matrix.get_center() - word.get_center()
+            anims.append(ApplyMethod(word.shift, matrix_pos_diff))
+            anims.append(Transform(word, embed))
+            
+        for anim in anims:
+            self.play(anim)
+
+        self.wait(2)
+
+        # shift embedding matrix and embeddings to the left
+        self.play(ApplyMethod(context.shift, [-2.7, 0, 0]),
+                  ApplyMethod(embedding_matrix.shift, [-2.7, 0, 0]))
+        self.wait(2)
+
+
+        # sum embeddings 
+        sum_symbol = TextMobject("$\\sum$").scale(1).next_to(embedding_matrix, RIGHT).shift([1.7,0.0,0])
+        self.play(Write(sum_symbol))
+        self.wait(2)
+
+        e_sum = TextMobject("$E_{sum}$").move_to(sum_symbol.get_center())
+
+        self.play(Transform(context, e_sum), FadeOut(sum_symbol))
+        self.wait(2)
+
+        # push sum through output matrix
+        self.play(ApplyMethod(embedding_matrix.shift, [-4, 0, 0]),
+                  ApplyMethod(context.shift, [-2, 0, 0]))
+
+        output_matrix = Matrix(["Output"]).next_to(context, RIGHT).scale(0.7)
+        self.play(GrowFromCenter(output_matrix))
+        self.wait(2)
+
+        e_out = TextMobject("$E_{out}$").next_to(output_matrix, RIGHT).shift([0.5, 0, 0])
+        self.play(Transform(context, e_out))
+        self.wait(2)
+
+        # apply softmax
+        self.play(ApplyMethod(output_matrix.shift, [-10, 0, 0]))
+
+        e_out_soft = TextMobject("$Softmax(E_{out})$").move_to(e_out.get_center())
+        self.play(Transform(context, e_out_soft))
+        self.wait(2)
+
+        # compare probs
+        soft_probs = Matrix([.01, .02, .01, .01, "0.90", .01, .01, .01, .02]).scale(0.5)
+        soft_probs.move_to(context.get_center()).shift([1.5, 0, 0])
+
+        movie_one_hot = Matrix([0, 0, 0, 0, 1, 0, 0, 0, 0]).set_color(YELLOW).scale(0.5)
+        movie_one_hot.next_to(bow[target], LEFT).shift([-0.5, 0, 0])
+
+        self.play(Transform(context, soft_probs))
+        self.wait(2)
+
+        self.play(GrowFromCenter(movie_one_hot))
+        self.wait(2)
+
+        # get loss
+        self.play(FadeOut(bow[target]))
+        loss = TextMobject("Loss").move_to((context.get_center() + movie_one_hot.get_center())/2)
+        tmp_group = VGroup(context, movie_one_hot)
+
+        self.play(Transform(tmp_group, loss))
+        self.wait(2)
+
+
+        # blend in matrices
+        embedding_matrix = Matrix(["Emebedding"]).move_to([-3,0,0]).scale(0.7)
+        output_matrix = Matrix(["Output"]).next_to(embedding_matrix, RIGHT).scale(0.7)
+        self.play(GrowFromCenter(embedding_matrix),
+                  GrowFromCenter(output_matrix))
+        self.wait(2)
+
+
+        # clear screen
+        self.play(FadeOut(embedding_matrix), FadeOut(output_matrix), FadeOut(tmp_group))
+        self.wait(1)
+
+        # summarize
+        self.play(GrowFromCenter(context_summary))
+        self.wait(0.1)
+
+        embedding_matrix = Matrix(["Emebedding"]).move_to([-3,0,0]).scale(0.6)
+        self.play(GrowFromCenter(embedding_matrix))
+        self.wait(0.1)
+
+        sum_symbol = TextMobject("$\\sum$").scale(0.6).next_to(embedding_matrix, RIGHT).shift([0.5, 0, 0])
+        self.play(GrowFromCenter(sum_symbol))
+        self.wait(0.1)
+
+        output_matrix = Matrix(["Output"]).next_to(sum_symbol, RIGHT).scale(0.6)
+        self.play(GrowFromCenter(output_matrix))
+        self.wait(0.1)
+
+        softmax = TextMobject("$Softmax()$").next_to(output_matrix, RIGHT).scale(0.6)
+        self.play(GrowFromCenter(softmax))
+        self.wait(0.1)
+
+        target_word = bow[target].next_to(softmax, RIGHT).shift([0.5, 0.05, 0])
+        self.play(GrowFromCenter(target_word))
+        self.wait(2)
+
+
+        # highlight embeddings matrix
+        embedding_matrix.generate_target()
+
+        embedding_matrix.target.scale(1.5).set_color(BLUE)
+        self.play(MoveToTarget(embedding_matrix))
+        self.wait(0.1)
+
+        embedding_matrix.target.scale(1/1.5).set_color(WHITE)
+        self.play(MoveToTarget(embedding_matrix))
+
+        self.wait(2)
+
+        self.play(FadeOut(context_summary), FadeOut(embedding_matrix), FadeOut(sum_symbol),
+                  FadeOut(output_matrix), FadeOut(softmax), FadeOut(target_word), FadeOut(cbow_long))
+
+
+
+class DualNetwork(NetworkScene):
+
+    def construct(self):
+
+        embed_net_label = TextMobject("Embedding Net")
+        embedding_net = Network(sizes = [9, 6, 4])
+        embedding_net_mob = NetworkMobject(embedding_net).move_to([-2, 0, 0]).scale(0.8)
+
+        class_net_lebel = TextMobject("Classifyer Net")
+        classifyer_net = Network(sizes = [4, 6, 6, 3])
+        classifyer_net_mob = NetworkMobject(classifyer_net).move_to([2, 0, 0]).scale(0.8)
+
+        self.play(GrowFromCenter(embedding_net_mob))
+        self.play(GrowFromCenter(classifyer_net_mob))
         self.wait(2)
 
 
 
-
-
-
-
-
-
-#class 
 
 
 
